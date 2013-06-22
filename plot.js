@@ -3,15 +3,31 @@ function log10(x) {
     return Math.log(x)/Math.log(10);
 }
 
+function min(a) {
+    if(a === null || a === undefined || a.length === 0) {
+        return Infinity;
+    }
+    return a.reduce(function(x,y) {return Math.min(x,y);});
+}
 
+function max(a) {
+    if(a === null || a === undefined || a.length === 0) {
+        return -Infinity;
+    }
+    return a.reduce(function(x,y) {return Math.max(x,y);});
+}
 
-var operators = ["+", "-", "*","/"];
+var operators = ["+", "-", "*","/", "^"];
 var functions = {
     tan: Math.tan,
     cos: Math.cos,
     sin: Math.sin,
     log: Math.log,
-    log10: log10
+    log10: log10,
+    exp: Math.exp,
+    E:Math.floor,
+    min: min,
+    max: max
 };
 
 var functionsNames = Object.keys(functions);
@@ -67,6 +83,7 @@ function getSplits(str, splits) {
 }
 
 function findMainNode(expr) {
+    expr = expr.replace(/\s+/g, '');
     console.log("entrance of findMainOperator: expr = " + expr);
     if(isTerminalNode(expr)) {
         return new Node(expr,[]);
@@ -82,6 +99,8 @@ function findMainNode(expr) {
         if(splits.length > 0) {
             mainNode = op;
             var chunks = getSplits(expr, splits);
+            console.log("chunks:");
+            console.log(chunks);
             return new Node(mainNode, chunks.map(findMainNode));
         }
     }
@@ -96,7 +115,14 @@ function findMainNode(expr) {
         }
         var headLength = head.length;
         var core = expr.substring(headLength+1, expr.length-1); //take what"s after function name and remove the parenthesis
-        return new FunctionNode(head, [findMainNode(core)]);//TODO: change this line to handle multiple variables functions. typically, core should be splitted by coma.    
+        var coreSplits = core.split(",");
+        if(coreSplits.length === 1) {
+            return new FunctionNode(head, [findMainNode(core)]);//TODO: change this line to handle multiple variables functions. typically, core should be splitted by coma.                
+        }
+        console.log("coreSplits:");
+        console.log(coreSplits);
+        return new FunctionNode(head,coreSplits.map(findMainNode));
+
     }
 //    debugger;
     //if the main function couldn"t be found, throw an exception
@@ -137,6 +163,9 @@ function Node(node, neighbours) {
         if(this.node === "/") {
             func = function(x,y) {return x/y;};
         }
+        if(this.node === "^") {
+            func = function(x,y) {return Math.pow(x,y);};
+        }
         return neighboursValues.reduce(func);
     };
 }
@@ -148,7 +177,10 @@ function FunctionNode(funcName, neighbours) {
     this.isVariable = function() {return false;};
     this.isTerminal = function() {return false;};
     this.eval = function(vals) {
-        return this.func(neighbours.map(function(neighbour){return neighbour.eval(vals);}));
+        var neighboursEvals = neighbours.map(function(neighbour){return neighbour.eval(vals);});
+        console.log("neighboursEvals:");
+        console.log(neighboursEvals);
+        return this.func(neighboursEvals);
     };
 }
 
