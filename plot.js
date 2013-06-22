@@ -27,7 +27,9 @@ var functions = {
     exp: Math.exp,
     E:Math.floor,
     min: min,
-    max: max
+    max: max,
+    abs: Math.abs,
+    sqrt: Math.sqrt
 };
 
 var functionsNames = Object.keys(functions);
@@ -62,7 +64,7 @@ function isNumber(expr) {
 }
 
 function isVariable(expr) {
-    return isExactMatch(expr, /[A-z]+[0-9]*/);
+    return isExactMatch(expr, /[A-Za-z]+[0-9]*/);
 }
 
 function isTerminalNode(expr) {
@@ -98,6 +100,7 @@ function findMainNode(expr) {
         splits = getOpsOutsideParenthesis(expr,op);
         if(splits.length > 0) {
             mainNode = op;
+            console.log("op = " + op);
             var chunks = getSplits(expr, splits);
             console.log("chunks:");
             console.log(chunks);
